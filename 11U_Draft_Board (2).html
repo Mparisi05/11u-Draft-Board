@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11U Draft Board</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-card-hover: #1f2b4a;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --accent-gold: #fbbf24;
+            --team-braves: #2d5a27;
+            --team-pirates: #c9a227;
+            --team-phillies: #a82c2c;
+            --team-yankees: #1e3a5f;
+            --team-rangers: #2563eb;
+            --team-giants: #ea580c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Source Sans Pro', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+
+        .header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            letter-spacing: 4px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        select, button {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2a2a4a;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:hover, button:hover {
+            border-color: #666;
+            background: #3a3a5a;
+        }
+
+        button.active {
+            background: var(--accent-green);
+            color: #000;
+            border-color: var(--accent-green);
+        }
+
+        .draft-legend {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+
+        .legend-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .player-count {
+            background: #2a2a4a;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .player-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .player-card:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .player-card.drafted-braves { border-color: var(--team-braves); background: rgba(45, 90, 39, 0.5); }
+        .player-card.drafted-braves * { opacity: 0.6; }
+        .player-card.drafted-braves select { opacity: 1; }
+        
+        .player-card.drafted-pirates { border-color: var(--team-pirates); background: rgba(140, 110, 20, 0.5); }
+        .player-card.drafted-pirates * { opacity: 0.6; }
+        .player-card.drafted-pirates select { opacity: 1; }
+        
+        .player-card.drafted-phillies { border-color: var(--team-phillies); background: rgba(168, 44, 44, 0.5); }
+        .player-card.drafted-phillies * { opacity: 0.6; }
+        .player-card.drafted-phillies select { opacity: 1; }
+        
+        .player-card.drafted-yankees { border-color: var(--team-yankees); background: rgba(30, 58, 95, 0.55); }
+        .player-card.drafted-yankees * { opacity: 0.6; }
+        .player-card.drafted-yankees select { opacity: 1; }
+        
+        .player-card.drafted-rangers { border-color: var(--team-rangers); background: rgba(37, 99, 235, 0.45); }
+        .player-card.drafted-rangers * { opacity: 0.6; }
+        .player-card.drafted-rangers select { opacity: 1; }
+        
+        .player-card.drafted-giants { border-color: var(--team-giants); background: rgba(234, 88, 12, 0.45); }
+        .player-card.drafted-giants * { opacity: 0.6; }
+        .player-card.drafted-giants select { opacity: 1; }
+
+        .card-main {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+        }
+
+        .player-info-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            gap: 16px;
+            min-width: 280px;
+            border-right: 1px solid #333;
+        }
+
+        .hit-rank-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            padding: 8px 12px;
+            border-radius: 6px;
+            min-width: 50px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .player-name-block {
+            flex: 1;
+        }
+
+        .player-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attitude-badge {
+            font-size: 1rem;
+        }
+
+        .attitude-great { color: var(--accent-green); }
+        .attitude-bad { color: var(--accent-red); }
+
+        .player-teams {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .quick-stats-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            gap: 16px;
+            border-right: 1px solid #333;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .positions-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex: 1;
+            border-right: 1px solid #333;
+        }
+
+        .position-tag {
+            background: #2a3f5f;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .position-tag .rank {
+            color: var(--accent-gold);
+            margin-left: 4px;
+        }
+
+        .intel-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            flex: 1;
+            border-right: 1px solid #333;
+        }
+
+        .intel-text {
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            font-style: italic;
+        }
+
+        .video-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-right: 1px solid #333;
+        }
+
+        .video-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--accent-green);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .video-link:hover {
+            text-decoration: underline;
+        }
+
+        .draft-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            min-width: 140px;
+        }
+
+        .draft-section select {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        .expandable-sections {
+            border-top: 1px solid #333;
+        }
+
+        .section-tabs {
+            display: flex;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .section-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-right: 1px solid #333;
+            transition: all 0.2s;
+        }
+
+        .section-tab:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .section-tab.active {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+
+        .section-content {
+            display: none;
+            padding: 16px;
+            background: rgba(0,0,0,0.15);
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .stats-row .stat-item {
+            background: #1a1a2e;
+            padding: 6px 12px;
+            border-radius: 4px;
+            flex-direction: row;
+            gap: 8px;
+        }
+
+        .comment-block {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            padding: 10px 12px;
+            background: #1a1a2e;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .no-data {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        @media (max-width: 1200px) {
+            .card-main {
+                flex-wrap: wrap;
+            }
+            .player-info-section,
+            .quick-stats-section,
+            .positions-section,
+            .intel-section,
+            .video-section,
+            .draft-section {
+                border-right: none;
+                border-bottom: 1px solid #333;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .draft-legend {
+                margin-left: 0;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚾ 11U DRAFT BOARD</h1>
+        <div class="subtitle">Sort by ranks • Track your picks</div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Sort By:</label>
+            <select id="sortSelect">
+                <option value="HitRank">Hit Rank (All Players)</option>
+                <option value="PitchRank">Pitch Rank</option>
+                <option value="CatchRank">Catch Rank</option>
+                <option value="SSRank">SS Rank</option>
+                <option value="InfRank">Infield Rank</option>
+                <option value="1BRank">1B Rank</option>
+                <option value="OFRank">OF Rank</option>
+                <option value="MPH">MPH</option>
+                <option value="Size">Size</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Order:</label>
+            <button id="orderBtn" class="active" data-order="desc">High → Low</button>
+        </div>
+        <div class="control-group">
+            <label>Draft Status:</label>
+            <select id="filterSelect">
+                <option value="all">All Players</option>
+                <option value="available">Available Only</option>
+                <option value="drafted">Drafted Only</option>
+            </select>
+        </div>
+        <div class="player-count" id="playerCount">24 players</div>
+        <button id="exportBtn" onclick="exportByTeam()">📋 Export by Team</button>
+        <div class="draft-legend">
+            <div class="legend-item"><div class="legend-swatch" style="background: var(--team-braves)"></div>Me</div>
+            <div class="legend-item"><div class="legend-swatch" style="background: var(--team-pirates)"></div>Pirates</div>
+            <div class="legend-item"><div class="legend-swatch" style="background: var(--team-phillies)"></div>Phillies</div>
+            <div class="legend-item"><div class="legend-swatch" style="background: var(--team-yankees)"></div>Yankees</div>
+            <div class="legend-item"><div class="legend-swatch" style="background: var(--team-rangers)"></div>Rangers</div>
+            <div class="legend-item"><div class="legend-swatch" style="background: var(--team-giants)"></div>Giants</div>
+        </div>
+    </div>
+
+    <div class="players-list" id="playersList"></div>
+
+    <script>
+        const playersData = [
+  {
+    "Last": "Sullivan",
+    "First": "Ryder",
+    "Nickname": "",
+    "Video": "",
+    "Intel": "",
+    "Size": 3.0,
+    "MPH": 50.0,
+    "Attitude": 3.0,
+    "HitRank": 11.0,
+    "PitchRank": 8.1,
+    "CatchRank": 8.5,
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": 4.0,
+    "OFRank": "",
+    "Spring League": "Majors",
+    "Spring Team": "Orioles",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 10.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 42.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Excellent",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 1B",
+    "Smr Bat Order": "3-4",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Big bat with very low fly ball rate. Consistent line drive / hard ground ball hitter. Good pop time and accurate throws. Threw out a ton of runners. Plays a great 1st base as well. Very hard on himself when he gets out, even when he smokes the ball. High baseball IQ that loves the game and puts in crazy amounts of work outside of sanctioned practices. ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 7.5,
+    "Treyout Grnds": 7.5,
+    "Tryout Pops": 7.0,
+    "Tryout Comments": "",
+    "Spring Hit": 10.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Excellent",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 1B, SS, 3B",
+    "Spring Bat Order": "1-2, 3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Bottom line, Kid is the real deal. Stupid good. He will light up bronco and frankly college. "
+  },
+  {
+    "Last": "Kaineg",
+    "First": "Cole",
+    "Nickname": "",
+    "Video": "",
+    "Intel": "",
+    "Size": 4.0,
+    "MPH": 53.0,
+    "Attitude": 3.0,
+    "HitRank": 10.5,
+    "PitchRank": 8.6,
+    "CatchRank": 5.5,
+    "SSRank": 3.5,
+    "InfRank": 3.6,
+    "1BRank": "",
+    "OFRank": 5.7,
+    "Spring League": "Majors",
+    "Spring Team": "Rockies",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 10.0,
+    "SMr Run": 10.0,
+    "Smr Throw": 10.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 10.0,
+    "Smr Total": 41.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Average",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, SS",
+    "Smr Bat Order": "1-2",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Complete player from skill to attitude. Plays loose and confident. Fastest hands on the team. Moved him to leadoff as our tone setter which was a great fit as he was also our best base runner. Great starting and relieving, though I preferred him in the closer role with a solid out-pitch. Lockdown SS with significant improvement YoY, especially with throwing accuracy. ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 8.0,
+    "Tryout Pops": 9.0,
+    "Tryout Comments": "Bad hitting tryout",
+    "Spring Hit": 10.0,
+    "Spring Run": 10.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, SS",
+    "Spring Bat Order": "3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Cole is a superstar. We had first pick of the draft & he was the best selection by far. Great kid & a born leader. Had a slow start but started hitting bombs mid season"
+  },
+  {
+    "Last": "McDonald",
+    "First": "Smith",
+    "Nickname": "",
+    "Video": "https://www.loom.com/share/f74e94900f1b4a3fac9416bc14ea1079",
+    "Intel": "",
+    "Size": 3.0,
+    "MPH": 51.0,
+    "Attitude": 3.0,
+    "HitRank": 10.1,
+    "PitchRank": 8.3,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": 2.6,
+    "OFRank": 5.8,
+    "Spring League": "Majors",
+    "Spring Team": "RedSox",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 9.0,
+    "SMr Run": 9.0,
+    "Smr Throw": 10.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 38.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 1B, OF",
+    "Smr Bat Order": "1-2",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Moved to NYO from Buckhead in the spring and took advantage of his opportunity. Excelled week to week during the summer where he started in the 12 hole and by week 3 was batting 2nd. Great attitude, competitor who puts the time in. Plus arm and speed. Played 1st, P, and OF (for the first time) which was a good summer home given his speed and tracking ability.",
+    "Tryout Run": 8.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 9.0,
+    "Tryout Comments": "",
+    "Spring Hit": 10.0,
+    "Spring Run": 10.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 1B, SS, 3B, OF",
+    "Spring Bat Order": "1-2, 3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Best arm on the team, best bat on the team, second best glove on the team. Good attitude and good parents. If his coach was smarter/better at coaching then he would've had an even better year than he already did. He'll be an ace for whatever team he's on and steal a base every time he gets on base. Pleasure to coach."
+  },
+  {
+    "Last": "Walters",
+    "First": "Paul",
+    "Nickname": "",
+    "Video": "",
+    "Intel": "",
+    "Size": 5.0,
+    "MPH": 50.0,
+    "Attitude": 2.0,
+    "HitRank": 10.0,
+    "PitchRank": 7.1,
+    "CatchRank": 8.1,
+    "SSRank": 2.3,
+    "InfRank": 3.1,
+    "1BRank": 2.3,
+    "OFRank": "",
+    "Spring League": "Majors",
+    "Spring Team": "Phillies",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 8.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 9.0,
+    "Smr Total": 29.0,
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Excellent",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 1B, 2B, SS, 3B, OF",
+    "Smr Bat Order": "5-6, 7-8",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Has all the tools with some inconsistency at the plate and on the mound. Most versatile player. Lowest strike out rate on team. Has developed into a great catcher but wants to play more in the field where he has range to play any IF position. Summer spent time at C/1st/3rd/SS.  ",
+    "Tryout Run": 6.0,
+    "Tryout Throw": 8.5,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 7.0,
+    "Tryout Comments": "",
+    "Spring Hit": 9.0,
+    "Spring Run": 9.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 9.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Excellent",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, SS",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Good all around player and teammate. Competitor. Excellent catcher but does not want to just catch. Great range at SS for a big kid. Working on consistency on the mound and at the plate."
+  },
+  {
+    "Last": "Page",
+    "First": "Briggs",
+    "Nickname": "",
+    "Video": "https://www.loom.com/share/1b2b8ddb692f4c5ab639a0c9dc3decb1",
+    "Intel": "",
+    "Size": 4.0,
+    "MPH": 51.0,
+    "Attitude": -1.0,
+    "HitRank": 9.7,
+    "PitchRank": 8.2,
+    "CatchRank": 7.5,
+    "SSRank": 3.4,
+    "InfRank": 3.5,
+    "1BRank": 2.7,
+    "OFRank": 5.4,
+    "Spring League": "Majors",
+    "Spring Team": "Cardinals",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 9.0,
+    "SMr Run": 7.0,
+    "Smr Throw": 10.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 9.0,
+    "Smr Total": 36.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 1B, SS, 3B",
+    "Smr Bat Order": "5-6",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Really developed his pitching YoY with the ability to throw multiple pitches on top of high velo. Lock down 3rd. Struggled some with range and timing at SS (when covering 2nd) but has the arm for left side of IF. Very consistent hitter with mainly line drive / hard ground ball production that rarely K'd. Wants to develop as a catcher.",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 8.5,
+    "Treyout Grnds": 8.0,
+    "Tryout Pops": 8.5,
+    "Tryout Comments": "Bad tryout, especially hitting",
+    "Spring Hit": 10.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, 1B, 2B, SS, 3B, OF",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Briggs is a great kid who will excel in bronco. He can play every position and gives 110%. Strong at the plate and excels on the mound. Will be fun to see him grow as a baseball player. Gets down on himself sometimes, especially on the mound "
+  },
+  {
+    "Last": "Carroll",
+    "First": "Sam",
+    "Nickname": "",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=MLDJqp5TjTF1oJ_B&t=228",
+    "Intel": "Came back from 9th inning",
+    "Size": 5.0,
+    "MPH": 50.0,
+    "Attitude": 3.0,
+    "HitRank": 9.6,
+    "PitchRank": 6.9,
+    "CatchRank": 7.0,
+    "SSRank": "",
+    "InfRank": 2.2,
+    "1BRank": "",
+    "OFRank": 5.1,
+    "Spring League": "Majors",
+    "Spring Team": "Rays",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 9.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 44.0,
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 3B, OF",
+    "Smr Bat Order": "3-4",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Outstanding approach at the plate. Like Sully and Page, consistent line drive / hard ground ball hitter with low pop fly rate. Fielding struggled at times @3rd so got more playing time in LF and did much better than I expected. Not the fastest but gets a good jump on the ball and leaned into the position. Steady 3-hole hitter all summer. ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 8.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 9.0,
+    "Tryout Comments": "Good looking player, 3B",
+    "Spring Hit": 8.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 8.0,
+    "Spring OF": 8.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, SS, 3B",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Sam was very good at pretty much everything we asked him to do. His physical skills and baeball IQ are all there, has high expectations for himself. "
+  },
+  {
+    "Last": "Hilton",
+    "First": "Carter",
+    "Nickname": "",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=hD6HG7XKbC0Dr5-4&t=626",
+    "Intel": "snag if there, very good outfielder and fast, serviceable pitcher lessons",
+    "Size": 2.25,
+    "MPH": 50.0,
+    "Attitude": 1.0,
+    "HitRank": 9.4,
+    "PitchRank": 6.8,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": 3.0,
+    "1BRank": "",
+    "OFRank": 4.9,
+    "Spring League": "Majors",
+    "Spring Team": "D'Backs",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 8.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 41.0,
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, OF",
+    "Smr Bat Order": "1-2, 7-8",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Gifted quick-twitch athlete. Very strong for his size. Has typically been a mostly line drive hitter but struggled this summer getting out in front on bad pitches leading to highest pop-up rate on team with swing and miss, very uncharacteristic. Carter has 1 speed, full speed. Can cover ground in the OF but needs to work on reaction time. ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 8.0,
+    "Tryout Pops": 8.5,
+    "Tryout Comments": " 2B",
+    "Spring Hit": 10.0,
+    "Spring Run": 10.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 2B, SS, OF",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Majors (players that were league age 10 or 11)",
+    "Spring Notes": "Didn't strike out one time. On base machine. Elite speed. Guaranteed stolen bases. Hit a homerun. Elite SS. High baseball IQ. Silent leader. Actions speak real loud! Great parents. Goofy kid every blue moon. Best kid to coach! "
+  },
+  {
+    "Last": "Mancuso",
+    "First": "Liam",
+    "Nickname": "Liam",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=WP2vgQPkwB6SCbRg&t=749",
+    "Intel": "Snag if there, versatile won't be SS more versatile than williams",
+    "Size": 3.0,
+    "MPH": 50.0,
+    "Attitude": -1.0,
+    "HitRank": 9.3,
+    "PitchRank": 8.5,
+    "CatchRank": 5.0,
+    "SSRank": "",
+    "InfRank": 2.7,
+    "1BRank": "",
+    "OFRank": 5.9,
+    "Spring League": "Majors",
+    "Spring Team": "Orioles",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 8.0,
+    "SMr Run": 7.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 7.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 37.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, OF",
+    "Smr Bat Order": "7-8",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Solid starting pitcher that struggles in relief for whatever reason. Consistent at the plate with more pop to Left Center this year. Clutch hitter in some critical game situations. Tough kid that also loves the game and puts in a ton of work outside of sanctioned practices.  Split time between corner OF and 2nd. Finding aggressiveness will be the key to growth.",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 10.0,
+    "Tryout Comments": "great OF",
+    "Spring Hit": 9.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 9.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 2B",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "I love him, bottom line. He is a heck of player and even better kid. The Dad is insane.....ly fun to be around. Dad is a better coach than I am, bottom line. If you want someone who is going to put that Irish grit to work, go get him. He will not let you down.  "
+  },
+  {
+    "Last": "Williams",
+    "First": "Graham",
+    "Nickname": "",
+    "Video": "https://www.loom.com/share/f62d2e84fc964cd1b4c92b0861bfa5fa",
+    "Intel": "Versatile, good athlete, 2B or anywhere, not really a pitcher though no good offspeed",
+    "Size": 3.5,
+    "MPH": 47.0,
+    "Attitude": 3.0,
+    "HitRank": 9.3,
+    "PitchRank": 6.9,
+    "CatchRank": "",
+    "SSRank": 2.4,
+    "InfRank": 3.2,
+    "1BRank": "",
+    "OFRank": 5.6,
+    "Spring League": "Majors",
+    "Spring Team": "Cubs",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 8.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 7.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 9.0,
+    "Smr Total": 29.0,
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, SS, OF",
+    "Smr Bat Order": "1-2, 7-8",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Naturally confident leader. Elite defender with exceptional footwork. Lost a little confidence from short-arming balls. Most vocal on the field so repped in CF some. Middle of field player. Line drive hitter to opposite field. Very high baseball IQ and wants to learn more every day. G will eat/sleep/drink baseball!",
+    "Tryout Run": 6.0,
+    "Tryout Throw": 7.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 9.0,
+    "Tryout Comments": "Lefty swing",
+    "Spring Hit": 9.0,
+    "Spring Run": 9.0,
+    "Spring Throw": 8.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, SS",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Stud SS. Would be elite at 3B/2B/OF too, but we never took him away from SS unless he was pitching. Throws strikes and developed a little bit of pop at the end of the year. Perfect leadoff hitter. Almost too good of plate discipline. Had 12 BBs. Sometimes you wish he would swing more. Lefty hitter that goes oppo a lot. Good leader even as a 10. Smart baserunner."
+  },
+  {
+    "Last": "Winter",
+    "First": "William",
+    "Nickname": "Will",
+    "Video": "https://www.loom.com/share/6b48ea5bd7f1439f989bd10c76b1cce9",
+    "Intel": "big hitter,  more power than Villines, better EV",
+    "Size": 4.0,
+    "MPH": 49.0,
+    "Attitude": 2.0,
+    "HitRank": 9.2,
+    "PitchRank": 5.1,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": 2.5,
+    "OFRank": 4.5,
+    "Spring League": "Majors",
+    "Spring Team": "Cubs",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 9.0,
+    "SMr Run": 9.0,
+    "Smr Throw": 7.0,
+    "Smr OF": 7.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 41.0,
+    "Smr Pitcher": "Average",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "1B, OF",
+    "Smr Bat Order": "5-6",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Will hits the ball very hard. Led the team in HR's with 4. Big kid. Plays a good 1B. Has great speed on the bases. Good at tracking flyballs but not always as aggressive as he should be. Gets very frustrated when he doesn't get a hit. Got better throughout the season. Good teammate!! Great parents ",
+    "Tryout Run": 7.5,
+    "Tryout Throw": 7.5,
+    "Treyout Grnds": 6.5,
+    "Tryout Pops": 8.0,
+    "Tryout Comments": "Really good hitting tryout, big leg kick, skinny",
+    "Spring Hit": 9.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 8.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 9.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, 1B, 2B, SS, 3B, OF",
+    "Spring Bat Order": "3-4, 5-6",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Will can do it all. I think he played every single position for us other than maybe one of the corner OF spots. Great utility guy. 3B and 2B are probably his best positions but he's a good backup catcher. Throws strikes on the mound with a weird release that can be effective. Didn't play a ton of OF but he's pretty athletic so I think he would be good out there in Bronco. Led the league in HRs for most of the season. Tons of consistent pop at the plate. Batted ahead of a handful of really good 12s all year. "
+  },
+  {
+    "Last": "Morrissey",
+    "First": "Jake",
+    "Nickname": "",
+    "Video": "https://www.loom.com/share/8507094728ad4924bdddf57a7cd235a8",
+    "Intel": "Best pitcher, but won't hit",
+    "Size": 2.5,
+    "MPH": 48.0,
+    "Attitude": 1.0,
+    "HitRank": 9.1,
+    "PitchRank": 8.7,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": 2.6,
+    "1BRank": "",
+    "OFRank": 4.8,
+    "Spring League": "Majors",
+    "Spring Team": "Rays",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 6.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 10.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 40.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, OF",
+    "Smr Bat Order": "11-12",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Ace that got the ball against the best competition we faced. Mixes speeds better than anyone in this group and toes the mound with a ton of confidence. Wants the ball. Needs to slow things down in the IF where he likes to charge every ball (quick hands). Nice swing but it got long and found bottom of the ball more times than not for a high pop fly rate. Shortening the swing will get him back on track.",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 8.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 8.5,
+    "Tryout Comments": "Lefty swing, compact",
+    "Spring Hit": 9.0,
+    "Spring Run": 10.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, SS, 3B",
+    "Spring Bat Order": "1-2, 3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Jake was a pleasure to coach. Close to elite at nearly everything, pitches harder than you'd expect from a kid his size with a good second pitch. His bat was reliable and has some pop. Runs well"
+  },
+  {
+    "Last": "Villines",
+    "First": "Eric",
+    "Nickname": "",
+    "Video": "https://www.loom.com/share/a126e788b42347c98bbef577ce5333d1",
+    "Intel": "More versatile, pitching and catching (better pitcher on the Bulls_",
+    "Size": 3.0,
+    "MPH": 49.0,
+    "Attitude": 2.0,
+    "HitRank": 9.05,
+    "PitchRank": 7.4,
+    "CatchRank": 7.9,
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": 2.4,
+    "OFRank": 3.8,
+    "Spring League": "Majors",
+    "Spring Team": "Marlins",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 8.0,
+    "SMr Run": 6.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 39.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Excellent",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 1B, OF",
+    "Smr Bat Order": "1-2",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Eric is one of our top 2 pitchers. Very good at locating his fastball and has a fantastic changeup. Velo 53-54. I'd say he is our best defensive catcher. Blocks it up! No problems in left field and played a great 1B. His baserunning is suspect but will improve with time. Great kid!",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 6.0,
+    "Treyout Grnds": 6.5,
+    "Tryout Pops": 6.0,
+    "Tryout Comments": "Nice lefty swing",
+    "Spring Hit": 8.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 7.0,
+    "Spring Inf": 7.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Excellent",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "C",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Great kid; great family. Outstanding catcher. Live arm. Line drive machine at the plate. Threw out ~ 15 runners stealing this season. Surprised that he was NOT selected by the Toros. Will be an outstanding Bronco player. Although he was primarily used at catcher, can play middle IF and OF positions well."
+  },
+  {
+    "Last": "Crosby",
+    "First": "Neal",
+    "Nickname": "",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=LdHhxvFWWTIb7wyh&t=290",
+    "Intel": "",
+    "Size": 3.5,
+    "MPH": 50.0,
+    "Attitude": 3.0,
+    "HitRank": 9.0,
+    "PitchRank": 5.5,
+    "CatchRank": 6.0,
+    "SSRank": "",
+    "InfRank": 2.6,
+    "1BRank": "",
+    "OFRank": "",
+    "Spring League": "Majors",
+    "Spring Team": "Royals",
+    "Summer Team": "10U Longhorns",
+    "Smr Hit": 10.0,
+    "SMr Run": 7.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 9.0,
+    "Smr Total": 41.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Excellent",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 3B",
+    "Smr Bat Order": "1-2, 3-4",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Top all around player on our team this summer.  Has improved immensely in all aspects of his game over the last 18 months.  Hits for average and power, very much a line drive hitter.  Has turned into a dead pull hitter in the last year, which would be my only critique.  Was our more reliable starter and the pitcher that was called on to get our hardest outs.  Has above average velocity, good control, and throws a solid changeup.  Top 2 catcher on our team as well, with good footwork and strong arm.  Has a little hitch in his release that can be worked on to improve his pop time.  Good corner infielder and can while not fast has good ball tracking skills and form on catching flyballs. OF not a primary position, but can play.",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 5.0,
+    "Treyout Grnds": 5.0,
+    "Tryout Pops": 7.0,
+    "Tryout Comments": "bad tryout",
+    "Spring Hit": 7.0,
+    "Spring Run": 9.0,
+    "Spring Throw": 7.0,
+    "Spring OF": 8.0,
+    "Spring Inf": 7.0,
+    "Spring Pitch": "Not Applicable",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "2B, SS, OF",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Lead-off hitter who got on base - hits for some pop despite being undersized. Aggressive and good baserunner. Solid CF, 2B and can play SS. Strong arm for size but does not transfer over to the mound. Best kid to coach on team and brings positive vibes for all"
+  },
+  {
+    "Last": "Butler",
+    "First": "Bradford",
+    "Nickname": "Ford",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=UDEbIbYX4b55e01c&t=121",
+    "Intel": "",
+    "Size": 2.0,
+    "MPH": 47.0,
+    "Attitude": 1.0,
+    "HitRank": 8.6,
+    "PitchRank": 5.5,
+    "CatchRank": "",
+    "SSRank": 1.8,
+    "InfRank": 2.8,
+    "1BRank": "",
+    "OFRank": 4.7,
+    "Spring League": "International",
+    "Spring Team": "Braves",
+    "Summer Team": "10U Longhorns",
+    "Smr Hit": 7.0,
+    "SMr Run": 9.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 38.0,
+    "Smr Pitcher": "Average",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, SS, OF",
+    "Smr Bat Order": "1-2, 7-8",
+    "Smr Rec": "Majors",
+    "Smr Comments": "Ford is a good athlete, played in the middle of the field on defense. Was our primary shortstop and was top 2/3 at CF, SS, 2B. May have emerged as a better OF than IF this year, but played SS because he was our best option.  Can be inconsistent on grounders and does not have great footwork. Did not pitch much for us because he was not pitch efficient. At the plate, was generally inconsistent and primarily a contact hitter, would go from swinging at bad pitches and getting bad results to being to picky in the same weekend. He rolls over to SS and 3B a lot. Strong baserunner with good instincts.  Did not need to coach him much there.",
+    "Tryout Run": 8.0,
+    "Tryout Throw": 6.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 7.0,
+    "Tryout Comments": "",
+    "Spring Hit": 8.0,
+    "Spring Run": 9.0,
+    "Spring Throw": 8.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, SS",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Majors",
+    "Spring Notes": "Strong athlete with good footwork. Runs bases instinctually and gets great jumps. Hit his for more power this year than in year's past, but also had more difficulty with contact this year than in year's past as well.  Did not hit in games that same ways as in practice against similar competition.  Consistent on the mound with multiple pitches.  Projects as a middle of the diamond player next year."
+  },
+  {
+    "Last": "Bayersdorfer",
+    "First": "Nash",
+    "Nickname": "",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=hKKQpcBtryg9mKzw&t=64",
+    "Intel": "Used to be, good all around",
+    "Size": 2.5,
+    "MPH": 48.0,
+    "Attitude": 2.0,
+    "HitRank": 8.3,
+    "PitchRank": 6.6,
+    "CatchRank": 4.5,
+    "SSRank": 1.9,
+    "InfRank": 2.9,
+    "1BRank": "",
+    "OFRank": 4.4,
+    "Spring League": "Majors",
+    "Spring Team": "Braves",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 9.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 44.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 2B, SS, 3B, OF",
+    "Smr Bat Order": "3-4",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Nash's bat was on fire all summer. Hit leadoff first part of summer and then we moved him to 3 to get more RBI opportunities. Good pitcher with a very nice change up! Plays a good infield and has no problems in the outfield. Great kid to coach!",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 8.0,
+    "Treyout Grnds": 7.5,
+    "Tryout Pops": 8.0,
+    "Tryout Comments": "3B/2B",
+    "Spring Hit": 7.0,
+    "Spring Run": 10.0,
+    "Spring Throw": 8.0,
+    "Spring OF": 8.0,
+    "Spring Inf": 7.0,
+    "Spring Pitch": "Average",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Average",
+    "Spring Pos": "P, C, 2B, SS",
+    "Spring Bat Order": "5-6",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Incredible kid to coach. Great parents too. Plays hockey so his attendance was shaky in the beginning but absolutely LOVES sports and baseball. Thought he was going to be our guy in middle infield and at the plate. Sometimes looks more like a beast ball player than is but can either be challenged in Bronco or CRUSH majors again."
+  },
+  {
+    "Last": "Pols",
+    "First": "Ryan",
+    "Nickname": "Ryan",
+    "Video": "https://www.loom.com/share/a73a8b36daa44d23a9e4f9a1f6e890d3",
+    "Intel": "",
+    "Size": 2.5,
+    "MPH": 54.0,
+    "Attitude": -1.0,
+    "HitRank": 8.2,
+    "PitchRank": 7.5,
+    "CatchRank": 7.1,
+    "SSRank": "",
+    "InfRank": 2.0,
+    "1BRank": "",
+    "OFRank": 4.6,
+    "Spring League": "Majors",
+    "Spring Team": "Rockies",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 8.0,
+    "SMr Run": 7.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 41.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Excellent",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 3B, OF",
+    "Smr Bat Order": "5-6",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Ryan had a nice summer. He is our biggest arm. Velocity 56-58. Needs to work on his off speed pitch. Strong arm from 3B, baseball IQ isn't there for SS. Tracks fly balls well. Started a little slow at the plate but finished strong! Power hitter. Much better attitude and focus than years past ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 8.0,
+    "Tryout Comments": "",
+    "Spring Hit": 7.0,
+    "Spring Run": 6.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Excellent",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C",
+    "Spring Bat Order": "3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Ryan is a really tough kid who absolutely loves baseball. His dad was very involved but stepped back when we asked him to. Ryan is an awesome catcher and doesn't mind catching the whole game. Throws heat too"
+  },
+  {
+    "Last": "Ballinger",
+    "First": "Kingston",
+    "Nickname": "Kingston",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=jZUHpG-wi9aLs3JX&t=5",
+    "Intel": "Used to be",
+    "Size": 5.0,
+    "MPH": 55.0,
+    "Attitude": "",
+    "HitRank": 8.1,
+    "PitchRank": 5.6,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": 2.5,
+    "1BRank": 3.5,
+    "OFRank": 5.0,
+    "Spring League": "Majors",
+    "Spring Team": "Marlins",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 7.0,
+    "SMr Run": 7.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 49.0,
+    "Smr Pitcher": "Average",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 1B, 3B, OF",
+    "Smr Bat Order": "7-8",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Super proud of Kingston! Once I figured out how to coach Kingston he came alive! Needs positive reinforcement. Played a great 1B for us. Hit the ball really well and is super fast. A little timid on the bases so needs a little work there. ",
+    "Tryout Run": 10.0,
+    "Tryout Throw": 10.0,
+    "Treyout Grnds": 9.0,
+    "Tryout Pops": 10.0,
+    "Tryout Comments": "",
+    "Spring Hit": 6.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 8.0,
+    "Spring OF": 8.0,
+    "Spring Inf": 5.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, SS, 3B, OF",
+    "Spring Bat Order": "5-6",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Great kid, great family. Big, strong & athletic. Struggled at times at the plate(too many K's), however, he has the potential to excel in Bronco due to his size and strength. Has a very strong arm. Best pitching outing was in the playoffs. Defensively, his best position was in CF; can be a very good corner IF'er."
+  },
+  {
+    "Last": "Gruenhut",
+    "First": "Zac",
+    "Nickname": "",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=vpGjJ_3upzygmtvb&t=520",
+    "Intel": "Stay away from, can't really throw",
+    "Size": 3.5,
+    "MPH": 51.0,
+    "Attitude": -1.0,
+    "HitRank": 8.1,
+    "PitchRank": 8.4,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": 3.0,
+    "OFRank": 4.3,
+    "Spring League": "Majors",
+    "Spring Team": "Royals",
+    "Summer Team": "10U Toros",
+    "Smr Hit": 7.0,
+    "SMr Run": 6.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 41.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 1B, OF",
+    "Smr Bat Order": "7-8, 9-10",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Zac started the summer very strong, on the mound and at the plate. Unfortunately had minor elbow inflammation before June so we decided to shut him down pitching and defensively. Offensive production didn't keep pace through the entire summer, understandably since he was a DH only. Awesome pitcher with command of the zone and multiple pitches.",
+    "Tryout Run": 6.5,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 8.0,
+    "Tryout Pops": 8.0,
+    "Tryout Comments": "Lefty 1st base OF",
+    "Spring Hit": 7.0,
+    "Spring Run": 6.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 1B, OF",
+    "Spring Bat Order": "5-6",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Best pitcher on team and easily top 3 10U pitcher in majors. Left side with solid velo and great command. Hitting is solid, but probably 3rd to bottom hitter for Toros. Solid 1B and can play solid OF as well. Good with fly balls and rocket arm. Good kid and had leadership despite being youngest on team"
+  },
+  {
+    "Last": "Davidson",
+    "First": "Charles",
+    "Nickname": "Charlie",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=LtCvIKePhrGwS1Zu&t=346",
+    "Intel": "Dropped down",
+    "Size": 3.0,
+    "MPH": 46.0,
+    "Attitude": "",
+    "HitRank": 8.05,
+    "PitchRank": 6.4,
+    "CatchRank": 4.4,
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": "",
+    "OFRank": 4.0,
+    "Spring League": "Majors",
+    "Spring Team": "D'Backs",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 8.0,
+    "SMr Run": 8.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 8.0,
+    "Smr Total": 40.0,
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 3B, OF",
+    "Smr Bat Order": "5-6",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "What a great kid! Charlie hustle! He loves to play the game and has an unbelievable baseball IQ. Pitched some meaningful innings for us. Led the team in doubles. Runs the bases with passion. You can play him anywhere!",
+    "Tryout Run": 8.0,
+    "Tryout Throw": 7.0,
+    "Treyout Grnds": 5.0,
+    "Tryout Pops": 7.5,
+    "Tryout Comments": "",
+    "Spring Hit": 3.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 9.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, 2B, SS, 3B, OF",
+    "Spring Bat Order": "7-8",
+    "Spring League Rec": "Majors (players that were league age 10 or 11)",
+    "Spring Notes": "Leader. Does everything the right way. Great family. Can play every position easily. High baseball IQ. Coachable kid. Great catcher Just needs a quicker pop time. He'll get there. Quality pitcher. Lots of strikes "
+  },
+  {
+    "Last": "Cargal",
+    "First": "McCarthy",
+    "Nickname": "",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=oYqavyQzTIiGyygE&t=175",
+    "Intel": "Very fiesty player",
+    "Size": 1.2,
+    "MPH": 44.0,
+    "Attitude": -0.5,
+    "HitRank": 8.0,
+    "PitchRank": 5.0,
+    "CatchRank": "",
+    "SSRank": 2.2,
+    "InfRank": 3.3,
+    "1BRank": "",
+    "OFRank": 5.5,
+    "Spring League": "Majors",
+    "Spring Team": "RedSox",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 6.0,
+    "SMr Run": 6.0,
+    "Smr Throw": 7.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 9.0,
+    "Smr Total": 43.0,
+    "Smr Pitcher": "Average",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, SS",
+    "Smr Bat Order": "7-8",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "McCarthy had a pretty good summer! Has a fantastic glove!  Attitude needs work. ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 6.0,
+    "Treyout Grnds": 7.5,
+    "Tryout Pops": 9.0,
+    "Tryout Comments": "",
+    "Spring Hit": 7.0,
+    "Spring Run": 10.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 10.0,
+    "Spring Inf": 10.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Excellent",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, SS, OF",
+    "Spring Bat Order": "1-2, 3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Probably best glove I've ever coached. Smaller size so he drew a lot of walks, but on a bad team I think he felt obligated to try to hit more as opposed to walk and steal. Good pitcher and when he grows a little bit he'll be great. Don't think he made an error at short all year. Loved him"
+  },
+  {
+    "Last": "Collinger",
+    "First": "Bo",
+    "Nickname": "",
+    "Video": "",
+    "Intel": "",
+    "Size": "",
+    "MPH": "",
+    "Attitude": "",
+    "HitRank": 7.5,
+    "PitchRank": 7.0,
+    "CatchRank": "",
+    "SSRank": 1.7,
+    "InfRank": 2.1,
+    "1BRank": "",
+    "OFRank": "",
+    "Spring League": "Majors",
+    "Spring Team": "RedSox",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 7.0,
+    "SMr Run": 9.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 9.0,
+    "Smr Infield": 9.0,
+    "Smr Total": 44.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, SS, 3B, OF",
+    "Smr Bat Order": "5-6",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "Super proud of Bo! Had a great season! Can play anywhere on the field and is a top 2 glove on the team. Runs the bases extremely well and has a high baseball IQ. Pitched well against some very good teams, limited his innings a little due to the amount he pitched in the Spring. Good line drive hitter!",
+    "Tryout Run": "",
+    "Tryout Throw": "",
+    "Treyout Grnds": "",
+    "Tryout Pops": "",
+    "Tryout Comments": "",
+    "Spring Hit": 8.0,
+    "Spring Run": 9.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 9.0,
+    "Spring Inf": 9.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 2B, SS",
+    "Spring Bat Order": "1-2, 3-4",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Excellent player and a pleasure to coach. Rarely made an error and had a few pops in the gaps, though not super powerful at the plate. Always knew the situation at the plate/in the field/on the bases. Wasn't incredibly fast on the mound, but definitely above average. Will only get better as he gets a little bigger, as he is on the smaller side."
+  },
+  {
+    "Last": "Nichols",
+    "First": "Jack",
+    "Nickname": "Jack",
+    "Video": "https://www.loom.com/share/f050f4993be24509816dd0e04f47f81e",
+    "Intel": "Can't hit in games",
+    "Size": 3.0,
+    "MPH": 57.0,
+    "Attitude": -1.0,
+    "HitRank": 7.4,
+    "PitchRank": 6.5,
+    "CatchRank": 4.9,
+    "SSRank": "",
+    "InfRank": 1.5,
+    "1BRank": "",
+    "OFRank": 3.9,
+    "Spring League": "International",
+    "Spring Team": "Pirates",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 6.0,
+    "SMr Run": 4.0,
+    "Smr Throw": 9.0,
+    "Smr OF": 5.0,
+    "Smr Infield": 5.0,
+    "Smr Total": 39.0,
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, OF",
+    "Smr Bat Order": "9-10",
+    "Smr Rec": "Majors",
+    "Smr Comments": "Jack has the strongest arm on the team. When he is dialed in nobody can hit him. When he's not its a walk fest. Interested to see the development. Average in the field. Slow. Works his tail off and was a great teammate ",
+    "Tryout Run": 4.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 7.5,
+    "Tryout Pops": 7.5,
+    "Tryout Comments": "Good hitting tryout, high exit velo",
+    "Spring Hit": 10.0,
+    "Spring Run": 8.0,
+    "Spring Throw": 10.0,
+    "Spring OF": 8.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, 1B, SS, 3B",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Bronco",
+    "Spring Notes": "Jack is an incredibly strong kid.  He has an absolute cannon of an arm.  It would be tough to find many in this age group throwing harder than Jack.  On the mound, when dialed, Jack is unhittable.  His issue at times comes with release point/arm slot and he can get wild.  For the Pirates, we kept that relatively consistent all year long and Jack was dominant for us on the mound.  At the plate, he is incredibly strong and loves to hit.  He's working on becoming a switch hitter, and can do it relatively well, but his strong side of the plate is the right side currently.  He has HR power every time he swings.  Defensively, Jack can play a lot of positions, we used him at Catcher a lot and he's really improving back there.  From an infield standpoint, he leans more corner positions, but can absolutely play MIF if needed.  He's a great kid who is very coachable.  He was a true leader for us this past season."
+  },
+  {
+    "Last": "Gorrell",
+    "First": "Colin",
+    "Nickname": "",
+    "Video": "",
+    "Intel": "",
+    "Size": 2.75,
+    "MPH": 53.0,
+    "Attitude": "",
+    "HitRank": 6.5,
+    "PitchRank": 5.4,
+    "CatchRank": 4.1,
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": "",
+    "OFRank": 4.1,
+    "Spring League": "International",
+    "Spring Team": "WhiteSox",
+    "Summer Team": "10U Young Guns",
+    "Smr Hit": 8.0,
+    "SMr Run": 9.0,
+    "Smr Throw": 8.0,
+    "Smr OF": 8.0,
+    "Smr Infield": 7.0,
+    "Smr Total": 0.0,
+    "Smr Pitcher": "Excellent",
+    "Smr Catcher": "Good",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, OF",
+    "Smr Bat Order": "3-4",
+    "Smr Rec": "Majors",
+    "Smr Comments": "Huge talent kid. When he is mentally present, he is the most gifted player on the team. If things are not going well, it spirals fast. He responds to positive reinforcement. He is a very nice, kind, and caring kid. He has a huge arm, but needs to control it better at catcher and in the OF. When he is pitching well, he can dial it in. High strikeout and walk percentage. Big bat at the plate and athletic runner on the basepaths. Works very hard and does not complain. Would benefit from catching clinics to improve release time. ",
+    "Tryout Run": 7.5,
+    "Tryout Throw": 8.0,
+    "Treyout Grnds": 6.5,
+    "Tryout Pops": 7.5,
+    "Tryout Comments": "Long hair kid",
+    "Spring Hit": 6.0,
+    "Spring Run": 7.0,
+    "Spring Throw": 9.0,
+    "Spring OF": 8.0,
+    "Spring Inf": 8.0,
+    "Spring Pitch": "Excellent",
+    "Spring Catch": "Good",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, C, 3B, OF",
+    "Spring Bat Order": "3-4",
+    "Spring League Rec": "Majors",
+    "Spring Notes": "Colin was out best pitcher.  He has really good velocity on his fastball that most kids couldnt hit in INTL and if they did it was soft to the right side.  He also caught well for us when he wasnt pitching.  His hitting was slightly above average and something for him to work on. "
+  },
+  {
+    "Last": "Hill",
+    "First": "Jackson",
+    "Nickname": "Jack",
+    "Video": "https://youtu.be/UQkXA64Biv0?si=wdyHLKBJMG3EpAGm&t=572",
+    "Intel": "",
+    "Size": 4.5,
+    "MPH": 51.0,
+    "Attitude": 1.0,
+    "HitRank": 6.0,
+    "PitchRank": 5.2,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": 1.4,
+    "1BRank": "",
+    "OFRank": 4.2,
+    "Spring League": "Majors",
+    "Spring Team": "Marlins",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 5.0,
+    "SMr Run": 6.0,
+    "Smr Throw": 6.0,
+    "Smr OF": 6.0,
+    "Smr Infield": 6.0,
+    "Smr Total": 40.0,
+    "Smr Pitcher": "Average",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, 2B, 3B, OF",
+    "Smr Bat Order": "11-12",
+    "Smr Rec": "Majors",
+    "Smr Comments": "Great kid! Struggled to hit the ball this summer. Good base runner but not incredibly fast. Can track a fly ball and GB if hit directly to him. Awesome parents ",
+    "Tryout Run": 7.0,
+    "Tryout Throw": 9.0,
+    "Treyout Grnds": 7.0,
+    "Tryout Pops": 8.0,
+    "Tryout Comments": "Big arm, like",
+    "Spring Hit": 5.0,
+    "Spring Run": 6.0,
+    "Spring Throw": 5.0,
+    "Spring OF": 7.0,
+    "Spring Inf": 7.0,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 2B, OF",
+    "Spring Bat Order": "7-8",
+    "Spring League Rec": "Bronco (players that were league age 10 or 11)",
+    "Spring Notes": "Great kid, great family. Bubble player for Bronco due to his size & lack of strength. Played solid 2B. Was an effective pitcher & threw strikes. Great teammate."
+  },
+  {
+    "Last": "SmithGall",
+    "First": "William",
+    "Nickname": "",
+    "Video": "https://www.loom.com/share/c8ae781586664d17b807920c7464cd71",
+    "Intel": "",
+    "Size": 3,
+    "MPH": 45,
+    "Attitude": "",
+    "HitRank": 8.15,
+    "PitchRank": "",
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": "",
+    "1BRank": "",
+    "OFRank": 4.3,
+    "Spring League": "Majors",
+    "Spring Team": "WhiteSox",
+    "Summer Team": "10U Bulls",
+    "Smr Hit": 7,
+    "SMr Run": 10,
+    "Smr Throw": 6,
+    "Smr OF": 8,
+    "Smr Infield": 5,
+    "Smr Total": "",
+    "Smr Pitcher": "Average",
+    "Smr Catcher": "Not Applicable",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, OF",
+    "Smr Bat Order": "1-2",
+    "Smr Rec": "Bronco",
+    "Smr Comments": "William locked in our leadoff spot half way through the season and our offense started to click. Pretty good power, little bit of a funky swing but got the job done. Lightning fast. Tracks flyballs very well. His arm isn't super strong but he can pitch. Didn't get a ton of innings on the mound this Summer. Played some 2B this Spring but didnt see much infield for us. Ground balls are kinda weak. Great leadoff, speed and can track flys with the best of them.",
+    "Tryout Run": 7,
+    "Tryout Throw": 4,
+    "Treyout Grnds": 6,
+    "Tryout Pops": 6,
+    "Tryout Comments": "45mph, no, quick bat though",
+    "Spring Hit": 7,
+    "Spring Run": 9,
+    "Spring Throw": 7,
+    "Spring OF": 6,
+    "Spring Inf": 6,
+    "Spring Pitch": "Average",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "P, 2B, 3B, OF",
+    "Spring Bat Order": "1-2",
+    "Spring League Rec": "Majors (players that were league age 10 or 11)",
+    "Spring Notes": "Smitty was great. Pretty solid all around. Was streaky at times at the plate but was great when he was hot. Fastest kid on the team. Not a standout in the field but made some plays, as he develops will be able to play anywhere on the field"
+  },
+  {
+    "Last": "Notarianni",
+    "First": "Nicholas",
+    "Nickname": "Nick",
+    "Video": "https://www.loom.com/share/387b3dbf993641cd8d881da5cac3c103",
+    "Intel": "Better than tryout",
+    "Size": 4,
+    "MPH": 50,
+    "Attitude": "",
+    "HitRank": 7.6,
+    "PitchRank": 5,
+    "CatchRank": "",
+    "SSRank": "",
+    "InfRank": 1.5,
+    "1BRank": "",
+    "OFRank": 4,
+    "Spring League": "International",
+    "Spring Team": "Royals",
+    "Summer Team": "10U Longhorns",
+    "Smr Hit": 9,
+    "SMr Run": 6,
+    "Smr Throw": 9,
+    "Smr OF": 8,
+    "Smr Infield": 7,
+    "Smr Total": "",
+    "Smr Pitcher": "Good",
+    "Smr Catcher": "Average",
+    "Smr Attendance": "Excellent",
+    "Smr Positions": "P, C, 3B",
+    "Smr Bat Order": "3-4, 5-6",
+    "Smr Rec": "Majors",
+    "Smr Comments": "Nick was our best pure power hitter. Big and knows how to use is body to create power. Was a very streaky hitter (3 for 3 or 0 for 3), because he can dwell on failures and let them impact his play. Had a high average and OPS for us because even his miss hits where more than opponents could handle. Not fleet of foot, but a decent baserunner who wont outrun his ability. Started summer as one of our Top 2 pitchers but fell off as the season progressed. He has good velocity and throws strikes, but would get hit hard by the better teams he faced. Ran into trouble even more trouble when he would let up to throw strikes if he did not have his control. Control of emotions was also an issue when things weren't going well. An average catcher with good mechanics, just needs more speed and urgency. Same can be said of is play in the field. Really needs to work on athleticism and footwork to get to the next level. Has Bronco size, but could use more skill development.",
+    "Tryout Run": 8,
+    "Tryout Throw": 7.5,
+    "Treyout Grnds": 7,
+    "Tryout Pops": 7,
+    "Tryout Comments": "Big Corner Guy",
+    "Spring Hit": 8,
+    "Spring Run": 10,
+    "Spring Throw": 9,
+    "Spring OF": 8,
+    "Spring Inf": 8,
+    "Spring Pitch": "Good",
+    "Spring Catch": "Not Applicable",
+    "Spring Attendance": "Excellent",
+    "Spring Pos": "1B, SS",
+    "Spring Bat Order": "1-2, 3-4",
+    "Spring League Rec": "Majors",
+    "Spring Notes": "Had a great season for the Royals. Played a lot of SS or 1B when he wasnt pitching. was a pleasant surprise with the amount and type of plays he made in the field. Pitching was hit or miss as he was either really on (3 inns and 0 runs allowed) or off (walking hitters or struggling with control). At the plate he hit all season and is fast enough to turn routine balls in the OF into doubles. very smart baser runner as well. Good kid / positive attitude."
+  }
+];
+
+        // Filter out empty rows
+        const players = playersData.filter(p => p.Last && p.First);
+        
+        // Draft status storage
+        const draftStatus = {};
+
+        // Position definitions
+        const positionDefs = {
+            'PitchRank': { abbrev: 'P' },
+            'CatchRank': { abbrev: 'C' },
+            'SSRank': { abbrev: 'SS' },
+            'InfRank': { abbrev: 'IF' },
+            '1BRank': { abbrev: '1B' },
+            'OFRank': { abbrev: 'OF' }
+        };
+
+        // Ranks that should filter (exclude players without data)
+        const positionRanks = ['PitchRank', 'CatchRank', 'SSRank', 'InfRank', '1BRank', 'OFRank'];
+
+        function getDisplayName(player) {
+            const first = player.Nickname || player.First;
+            return `${first} ${player.Last}`;
+        }
+
+        function getPositions(player) {
+            const positions = [];
+            for (const [key, def] of Object.entries(positionDefs)) {
+                const val = player[key];
+                if (val !== '' && val !== null && val !== undefined) {
+                    positions.push({ pos: def.abbrev, rank: val, key: key });
+                }
+            }
+            positions.sort((a, b) => b.rank - a.rank);
+            return positions;
+        }
+
+        function getAttitudeBadge(attitude) {
+            if (attitude === '' || attitude === null || attitude === undefined) return '';
+            if (attitude >= 3) return '<span class="attitude-badge attitude-great" title="Great attitude">⭐</span>';
+            if (attitude < 0) return '<span class="attitude-badge attitude-bad" title="Attitude concern">⚠️</span>';
+            return '';
+        }
+
+        function formatStat(val) {
+            if (val === '' || val === null || val === undefined) return '<span class="no-data">—</span>';
+            return val;
+        }
+
+        function hasValue(val) {
+            return val !== '' && val !== null && val !== undefined;
+        }
+
+        function renderPlayer(player, index) {
+            const displayName = getDisplayName(player);
+            const positions = getPositions(player);
+            const attitudeBadge = getAttitudeBadge(player.Attitude);
+            const draftClass = draftStatus[index] ? `drafted-${draftStatus[index]}` : '';
+            
+            const positionsHtml = positions.map(p => 
+                `<span class="position-tag">${p.pos}<span class="rank">${p.rank}</span></span>`
+            ).join('');
+
+            const videoHtml = player.Video ? 
+                `<a href="${player.Video}" target="_blank" class="video-link">🎬 Video</a>` : '';
+
+            const intelHtml = player.Intel ? 
+                `<span class="intel-text">💡 ${player.Intel}</span>` : '<span class="no-data">—</span>';
+
+            return `
+                <div class="player-card ${draftClass}" data-index="${index}">
+                    <div class="card-main">
+                        <div class="player-info-section">
+                            <div class="hit-rank-badge" title="Hit Rank">
+                                ${player.HitRank || '—'}
+                            </div>
+                            <div class="player-name-block">
+                                <div class="player-name">
+                                    ${displayName} ${attitudeBadge}
+                                </div>
+                                <div class="player-teams">
+                                    ${player['Spring League']} • ${player['Spring Team']} → ${player['Summer Team']}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-stats-section">
+                            <div class="stat-item">
+                                <span class="stat-label">Size</span>
+                                <span class="stat-value">${formatStat(player.Size)}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">MPH</span>
+                                <span class="stat-value">${formatStat(player.MPH)}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="positions-section">
+                            ${positionsHtml || '<span class="no-data">No position ranks</span>'}
+                        </div>
+
+                        <div class="intel-section">
+                            ${intelHtml}
+                        </div>
+
+                        <div class="video-section">
+                            ${videoHtml || '<span class="no-data">—</span>'}
+                        </div>
+
+                        <div class="draft-section">
+                            <select onchange="setDraftStatus(${index}, this.value)">
+                                <option value="">Available</option>
+                                <option value="braves" ${draftStatus[index] === 'braves' ? 'selected' : ''}>Me</option>
+                                <option value="pirates" ${draftStatus[index] === 'pirates' ? 'selected' : ''}>Pirates</option>
+                                <option value="phillies" ${draftStatus[index] === 'phillies' ? 'selected' : ''}>Phillies</option>
+                                <option value="yankees" ${draftStatus[index] === 'yankees' ? 'selected' : ''}>Yankees</option>
+                                <option value="rangers" ${draftStatus[index] === 'rangers' ? 'selected' : ''}>Rangers</option>
+                                <option value="giants" ${draftStatus[index] === 'giants' ? 'selected' : ''}>Giants</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="expandable-sections">
+                        <div class="section-tabs">
+                            <div class="section-tab" onclick="showSection(this, 'summer-${index}')">☀️ Summer</div>
+                            <div class="section-tab" onclick="showSection(this, 'spring-${index}')">🌸 Spring</div>
+                            <div class="section-tab" onclick="showSection(this, 'tryout-${index}')">🏃 Tryout</div>
+                        </div>
+                        
+                        <div class="section-content" id="summer-${index}">
+                            <div class="stats-row">
+                                <div class="stat-item"><span class="stat-label">Hit</span><span class="stat-value">${formatStat(player['Smr Hit'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Run</span><span class="stat-value">${formatStat(player['SMr Run'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Throw</span><span class="stat-value">${formatStat(player['Smr Throw'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">OF</span><span class="stat-value">${formatStat(player['Smr OF'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">IF</span><span class="stat-value">${formatStat(player['Smr Infield'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Total</span><span class="stat-value">${formatStat(player['Smr Total'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Pitcher</span><span class="stat-value">${formatStat(player['Smr Pitcher'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Catcher</span><span class="stat-value">${formatStat(player['Smr Catcher'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Attend</span><span class="stat-value">${formatStat(player['Smr Attendance'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Positions</span><span class="stat-value">${formatStat(player['Smr Positions'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Bat Order</span><span class="stat-value">${formatStat(player['Smr Bat Order'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Rec</span><span class="stat-value">${formatStat(player['Smr Rec'])}</span></div>
+                            </div>
+                            ${player['Smr Comments'] ? `<div class="comment-block">${player['Smr Comments']}</div>` : ''}
+                        </div>
+                        
+                        <div class="section-content" id="spring-${index}">
+                            <div class="stats-row">
+                                <div class="stat-item"><span class="stat-label">Hit</span><span class="stat-value">${formatStat(player['Spring Hit'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Run</span><span class="stat-value">${formatStat(player['Spring Run'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Throw</span><span class="stat-value">${formatStat(player['Spring Throw'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">OF</span><span class="stat-value">${formatStat(player['Spring OF'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">IF</span><span class="stat-value">${formatStat(player['Spring Inf'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Pitcher</span><span class="stat-value">${formatStat(player['Spring Pitch'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Catcher</span><span class="stat-value">${formatStat(player['Spring Catch'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Attend</span><span class="stat-value">${formatStat(player['Spring Attendance'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Positions</span><span class="stat-value">${formatStat(player['Spring Pos'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Bat Order</span><span class="stat-value">${formatStat(player['Spring Bat Order'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Rec</span><span class="stat-value">${formatStat(player['Spring League Rec'])}</span></div>
+                            </div>
+                            ${player['Spring Notes'] ? `<div class="comment-block">${player['Spring Notes']}</div>` : ''}
+                        </div>
+                        
+                        <div class="section-content" id="tryout-${index}">
+                            <div class="stats-row">
+                                <div class="stat-item"><span class="stat-label">Run</span><span class="stat-value">${formatStat(player['Tryout Run'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Throw</span><span class="stat-value">${formatStat(player['Tryout Throw'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Grounds</span><span class="stat-value">${formatStat(player['Treyout Grnds'])}</span></div>
+                                <div class="stat-item"><span class="stat-label">Pops</span><span class="stat-value">${formatStat(player['Tryout Pops'])}</span></div>
+                            </div>
+                            ${player['Tryout Comments'] ? `<div class="comment-block">${player['Tryout Comments']}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showSection(tab, sectionId) {
+            const card = tab.closest('.player-card');
+            
+            // Remove active from all tabs in this card
+            card.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+            // Remove active from all content in this card
+            card.querySelectorAll('.section-content').forEach(c => c.classList.remove('active'));
+            
+            // If clicking the same tab, just close it
+            const section = document.getElementById(sectionId);
+            if (section.classList.contains('active')) {
+                return;
+            }
+            
+            // Activate clicked tab and content
+            tab.classList.add('active');
+            section.classList.add('active');
+        }
+
+        function setDraftStatus(index, team) {
+            if (team) {
+                draftStatus[index] = team;
+            } else {
+                delete draftStatus[index];
+            }
+            localStorage.setItem('draftStatus', JSON.stringify(draftStatus));
+            const card = document.querySelector(`.player-card[data-index="${index}"]`);
+            card.className = `player-card ${team ? 'drafted-' + team : ''}`;
+            applyFilter();
+        }
+
+        function getSortValue(player, sortKey) {
+            const val = player[sortKey];
+            if (val === '' || val === null || val === undefined) return -Infinity;
+            return parseFloat(val);
+        }
+
+        function renderPlayers() {
+            const sortKey = document.getElementById('sortSelect').value;
+            const order = document.getElementById('orderBtn').dataset.order;
+            const filter = document.getElementById('filterSelect').value;
+
+            let sortedPlayers = players.map((p, i) => ({ player: p, originalIndex: i }));
+            
+            // If sorting by a position rank (not HitRank, MPH, or Size), filter out players without that rank
+            if (positionRanks.includes(sortKey)) {
+                sortedPlayers = sortedPlayers.filter(({ player }) => hasValue(player[sortKey]));
+            }
+
+            // Sort
+            sortedPlayers.sort((a, b) => {
+                const aVal = getSortValue(a.player, sortKey);
+                const bVal = getSortValue(b.player, sortKey);
+                return order === 'desc' ? bVal - aVal : aVal - bVal;
+            });
+
+            // Filter by draft status
+            if (filter === 'available') {
+                sortedPlayers = sortedPlayers.filter(({ originalIndex }) => !draftStatus[originalIndex]);
+            } else if (filter === 'drafted') {
+                sortedPlayers = sortedPlayers.filter(({ originalIndex }) => draftStatus[originalIndex]);
+            }
+
+            // Update count
+            document.getElementById('playerCount').textContent = `${sortedPlayers.length} players`;
+
+            const list = document.getElementById('playersList');
+            list.innerHTML = sortedPlayers.map(({ player, originalIndex }) => 
+                renderPlayer(player, originalIndex)
+            ).join('');
+        }
+
+        function applyFilter() {
+            renderPlayers();
+        }
+
+        function exportByTeam() {
+            const teamNames = {
+                'braves': 'Me (Braves)',
+                'pirates': 'Pirates',
+                'phillies': 'Phillies',
+                'yankees': 'Yankees',
+                'rangers': 'Rangers',
+                'giants': 'Giants'
+            };
+            
+            const teamOrder = ['braves', 'pirates', 'phillies', 'yankees', 'rangers', 'giants'];
+            
+            // Group players by team
+            const byTeam = { 'available': [] };
+            teamOrder.forEach(t => byTeam[t] = []);
+            
+            players.forEach((player, index) => {
+                const team = draftStatus[index] || 'available';
+                const name = player.Nickname || player.First;
+                const fullName = `${name} ${player.Last}`;
+                const summerRun = player['SMr Run'] !== '' ? player['SMr Run'] : '—';
+                const springRun = player['Spring Run'] !== '' ? player['Spring Run'] : '—';
+                byTeam[team].push({ name: fullName, summerRun, springRun });
+            });
+            
+            // Build export text
+            let output = '11U DRAFT RESULTS\n';
+            output += '='.repeat(40) + '\n\n';
+            
+            teamOrder.forEach(team => {
+                if (byTeam[team].length > 0) {
+                    output += `${teamNames[team].toUpperCase()}\n`;
+                    output += '-'.repeat(30) + '\n';
+                    byTeam[team].forEach(p => {
+                        output += `${p.name.padEnd(20)} | Summer Run: ${String(p.summerRun).padStart(2)} | Spring Run: ${String(p.springRun).padStart(2)}\n`;
+                    });
+                    output += '\n';
+                }
+            });
+            
+            if (byTeam['available'].length > 0) {
+                output += 'AVAILABLE\n';
+                output += '-'.repeat(30) + '\n';
+                byTeam['available'].forEach(p => {
+                    output += `${p.name.padEnd(20)} | Summer Run: ${String(p.summerRun).padStart(2)} | Spring Run: ${String(p.springRun).padStart(2)}\n`;
+                });
+            }
+            
+            // Download as text file
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'draft_results.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Event listeners
+        document.getElementById('sortSelect').addEventListener('change', renderPlayers);
+        document.getElementById('filterSelect').addEventListener('change', renderPlayers);
+        document.getElementById('orderBtn').addEventListener('click', function() {
+            const currentOrder = this.dataset.order;
+            const newOrder = currentOrder === 'desc' ? 'asc' : 'desc';
+            this.dataset.order = newOrder;
+            this.textContent = newOrder === 'desc' ? 'High → Low' : 'Low → High';
+            this.classList.toggle('active', newOrder === 'desc');
+            renderPlayers();
+        });
+
+        // Load saved draft status
+        const savedStatus = localStorage.getItem('draftStatus');
+        if (savedStatus) {
+            Object.assign(draftStatus, JSON.parse(savedStatus));
+        }
+
+        // Initial render
+        renderPlayers();
+    </script>
+</body>
+</html>
